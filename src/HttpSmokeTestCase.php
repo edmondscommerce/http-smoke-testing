@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class HttpSmokeTestCase extends KernelTestCase
 {
-    protected const APP_ENV   = 'test';
+    protected const APP_ENV = 'test';
     protected const APP_DEBUG = false;
 
     /**
@@ -180,8 +180,11 @@ abstract class HttpSmokeTestCase extends KernelTestCase
      * @param string $routeName
      * @param int    $expectedCode
      */
-    protected function setExpectedCodeForRoute(string $routeName, int $expectedCode): void
-    {
+    protected function setExpectedCodeForRoute(
+        RouteConfigCustomizer $routeConfigCustomizer,
+        string $routeName,
+        int $expectedCode
+    ): void {
         $routeConfigCustomizer->customizeByRouteName(
             $routeName,
             static function (RouteConfig $routeConfig, RouteInfo $routeInfo) use ($expectedCode) {
