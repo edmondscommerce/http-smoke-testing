@@ -51,4 +51,13 @@ interface RequestDataSetConfig
      * @return $this
      */
     public function addCallDuringTestExecution($callback);
+
+    /**
+     * If provided, this will mean we make a post request with the provided body
+     *
+     * @param string $postRequestBody
+     *
+     * @return $this
+     */
+    public function setPostRequestBody(string $postRequestBody);
 }

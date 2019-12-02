@@ -46,15 +46,21 @@ class RequestDataSet implements RequestDataSetConfig
     private $callsDuringTestExecution;
 
     /**
+     * @var string
+     */
+    private $postRequestBody;
+
+    /**
      * @param string $routeName
      */
     public function __construct($routeName)
     {
-        $this->routeName = $routeName;
-        $this->skipped = false;
-        $this->parameters = [];
-        $this->debugNotes = [];
+        $this->routeName                = $routeName;
+        $this->skipped                  = false;
+        $this->parameters               = [];
+        $this->debugNotes               = [];
         $this->callsDuringTestExecution = [];
+        $this->postRequestBody          = '';
     }
 
     /**
@@ -74,47 +80,8 @@ class RequestDataSet implements RequestDataSetConfig
     }
 
     /**
-     * @return \Shopsys\HttpSmokeTesting\Auth\AuthInterface
-     */
-    public function getAuth()
-    {
-        if ($this->auth === null) {
-            return new NoAuth();
-        }
-
-        return $this->auth;
-    }
-
-    /**
-     * @return int
-     */
-    public function getExpectedStatusCode()
-    {
-        if ($this->expectedStatusCode === null) {
-            return self::DEFAULT_EXPECTED_STATUS_CODE;
-        }
-
-        return $this->expectedStatusCode;
-    }
-
-    /**
-     * @return array
-     */
-    public function getParameters()
-    {
-        return $this->parameters;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getDebugNotes()
-    {
-        return $this->debugNotes;
-    }
-
-    /**
      * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     *
      * @return $this
      */
     public function executeCallsDuringTestExecution(ContainerInterface $container)
@@ -137,72 +104,13 @@ class RequestDataSet implements RequestDataSetConfig
     }
 
     /**
-     * @param \Shopsys\HttpSmokeTesting\Auth\AuthInterface $auth
-     * @return $this
-     */
-    public function setAuth(AuthInterface $auth)
-    {
-        $this->auth = $auth;
-
-        return $this;
-    }
-
-    /**
-     * @param int $code
-     * @return $this
-     */
-    public function setExpectedStatusCode($code)
-    {
-        $this->expectedStatusCode = $code;
-
-        return $this;
-    }
-
-    /**
-     * @param string $name
-     * @param mixed $value
-     * @return $this
-     */
-    public function setParameter($name, $value)
-    {
-        $this->parameters[$name] = $value;
-
-        return $this;
-    }
-
-    /**
-     * @param string $debugNote
-     * @return $this
-     */
-    public function addDebugNote($debugNote)
-    {
-        $this->debugNotes[] = $debugNote;
-
-        return $this;
-    }
-
-    /**
-     * Provided $callback will be called with instance of this and ContainerInterface as arguments
-     *
-     * Useful for code that needs to access the same instance of container as the test method.
-     *
-     * @param callable $callback
-     * @return $this
-     */
-    public function addCallDuringTestExecution($callback)
-    {
-        $this->callsDuringTestExecution[] = $callback;
-
-        return $this;
-    }
-
-    /**
      * Merges values from specified $requestDataSet into this instance.
      *
      * It is used to merge extra RequestDataSet into default RequestDataSet.
      * Values that were not specified in $requestDataSet have no effect on result.
      *
      * @param \Shopsys\HttpSmokeTesting\RequestDataSet $requestDataSet
+     *
      * @return $this
      */
     public function mergeExtraValuesFrom(self $requestDataSet)
@@ -222,7 +130,131 @@ class RequestDataSet implements RequestDataSetConfig
         foreach ($requestDataSet->callsDuringTestExecution as $callback) {
             $this->addCallDuringTestExecution($callback);
         }
+        if ($requestDataSet->getPostRequestBody()) {
+            $this->setPostRequestBody($requestDataSet->getPostRequestBody());
+        }
 
         return $this;
+    }
+
+    /**
+     * @return \Shopsys\HttpSmokeTesting\Auth\AuthInterface
+     */
+    public function getAuth()
+    {
+        if ($this->auth === null) {
+            return new NoAuth();
+        }
+
+        return $this->auth;
+    }
+
+    /**
+     * @param \Shopsys\HttpSmokeTesting\Auth\AuthInterface $auth
+     *
+     * @return $this
+     */
+    public function setAuth(AuthInterface $auth)
+    {
+        $this->auth = $auth;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getExpectedStatusCode()
+    {
+        if ($this->expectedStatusCode === null) {
+            return self::DEFAULT_EXPECTED_STATUS_CODE;
+        }
+
+        return $this->expectedStatusCode;
+    }
+
+    /**
+     * @param int $code
+     *
+     * @return $this
+     */
+    public function setExpectedStatusCode($code)
+    {
+        $this->expectedStatusCode = $code;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed  $value
+     *
+     * @return $this
+     */
+    public function setParameter($name, $value)
+    {
+        $this->parameters[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getDebugNotes()
+    {
+        return $this->debugNotes;
+    }
+
+    /**
+     * @param string $debugNote
+     *
+     * @return $this
+     */
+    public function addDebugNote($debugNote)
+    {
+        $this->debugNotes[] = $debugNote;
+
+        return $this;
+    }
+
+    /**
+     * Provided $callback will be called with instance of this and ContainerInterface as arguments
+     *
+     * Useful for code that needs to access the same instance of container as the test method.
+     *
+     * @param callable $callback
+     *
+     * @return $this
+     */
+    public function addCallDuringTestExecution($callback)
+    {
+        $this->callsDuringTestExecution[] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPostRequestBody(): string
+    {
+        return $this->postRequestBody;
+    }
+
+    /**
+     * @param string $postRequestBody
+     */
+    public function setPostRequestBody(string $postRequestBody): void
+    {
+        $this->postRequestBody = $postRequestBody;
     }
 }

@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class HttpSmokeTestCase extends KernelTestCase
 {
-    protected const APP_ENV = 'test';
+    protected const APP_ENV   = 'test';
     protected const APP_DEBUG = false;
 
     /**
@@ -67,6 +67,10 @@ abstract class HttpSmokeTestCase extends KernelTestCase
     {
         $uri = $this->getRouterAdapter()->generateUri($requestDataSet);
 
+        $postRequestBody = $requestDataSet->getPostRequestBody();
+        if ('' !== $postRequestBody) {
+            return $this->createPostRequest($uri, $requestDataSet);
+        }
         $request = Request::create($uri);
 
         $requestDataSet->getAuth()
@@ -83,6 +87,15 @@ abstract class HttpSmokeTestCase extends KernelTestCase
         $router = static::$kernel->getContainer()->get('router');
 
         return new SymfonyRouterAdapter($router);
+    }
+
+    protected function createPostRequest(string $uri, RequestDataSet $requestDataSet): Request
+    {
+        $request = Request::create($uri, Request::METHOD_POST, [], [], [], [], $requestDataSet->getPostRequestBody());
+        $requestDataSet->getAuth()
+                       ->authenticateRequest($request);
+
+        return $request;
     }
 
     /**
