@@ -206,4 +206,26 @@ abstract class HttpSmokeTestCase extends KernelTestCase
             }
         );
     }
+
+    /**
+     * A helper method to configure a route for POST with post data
+     *
+     * @param RouteConfigCustomizer $routeConfigCustomizer
+     * @param string                $routeName
+     * @param string                $postData
+     *
+     * @throws Exception\RouteNameNotFoundException
+     */
+    protected function setPostDataForRoute(
+        RouteConfigCustomizer $routeConfigCustomizer,
+        string $routeName,
+        string $postData
+    ): void {
+        $routeConfigCustomizer->customizeByRouteName(
+            $routeName,
+            static function (RouteConfig $routeConfig) use ($postData) {
+                $routeConfig->changeDefaultRequestDataSet()->setPostRequestBody($postData);
+            }
+        );
+    }
 }
